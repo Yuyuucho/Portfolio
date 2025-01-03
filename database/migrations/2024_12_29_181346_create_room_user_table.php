@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId("user_id")->constrained()->cascadeOnDelete();
             $table->foreignId("room_id")->constrained()->cascadeOnDelete();
-            /*$table->boolean("is_owner")->default(0);
-            $table->timestamps("enter_time");
-            $table->softDeletes("exit_time");*/
+            $table->boolean("is_owner")->default(0);
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

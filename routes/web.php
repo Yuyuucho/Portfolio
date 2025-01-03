@@ -13,8 +13,12 @@ use App\Http\Controllers\BuildController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [BuildController::class, 'index']);
 
-Route::get('/users', [BuildController::class, 'index']);
+Route::get('/create', [BuildController::class, 'create']);
+
+Route::post('/create', [BuildController::class, 'rstore']);
+
+Route::get('/start/{room}', [BuildController::class, 'start']);
+
+Route::get('/enter', [BuildController::class, 'enter']);
