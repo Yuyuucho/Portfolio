@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\Room;
 use App\Http\Requests\BuildRequest;
 use App\Http\Requests\EnterRequest;
+use Illuminate\Support\Facades\Auth;
+
 
 class BuildController extends Controller
 {
@@ -19,7 +21,7 @@ class BuildController extends Controller
         return view('create');
     }
 
-    public function rstore(BuildRequest $request, Room $room)
+    public function storeRoom(BuildRequest $request, Room $room)
     {
         $input = $request['room'];
         $room->fill($input)->save();
@@ -28,9 +30,15 @@ class BuildController extends Controller
         //処理が上手くいった時は"/start"へリダイレクトされ、そうじゃないときは"/create"にエラー内容が表示されるようにしたい。
         //ここで中間テーブルも作成したいから、どのユーザーがアクセスしたかは大事。/create/{id}に後で修正してみる。
         //redirect後も'/start/{id}'にリダイレクトするようにする。
+        //パスワードがかぶったとき、isownerがtrueの人はデータベースを更新できるようにする。
     }
 
     public function start(Room $room)
+    {
+        return view('start')->with(['room' => $room]);
+    }
+
+    public function startRoomPost(Room $room)
     {
         return view('start')->with(['room' => $room]);
     }
@@ -40,23 +48,30 @@ class BuildController extends Controller
         return view('enter');
     }
 
-    public function rustore(EnterRequest $request)
+    public function joinRoom(EnterRequest $request)
     {
-        
-        $room = Room::where('roompass', $request->roompass)->first();//$room = Room::whereのほうがいい可能性あり。
+        $userId = Auth::id();
+        $user = User::findOrFail($userId);
+        $room = Room::where('roompass', $request->roompass)->first();
         if ($room){
-            return redirect('/wait');//ユーザーとルームのidを合わせた固有の値を使いたい。
+            $room->users()->syncWithoutDetaching($user->id);
+            return redirect('/wait/' .$room->id .'/' .$user->id);//ユーザーとルームのidを合わせた固有の値を使いたい。.$room->id .$user->id
         } else {
-            //errorを渡したい。
-            return redirect()->back()->with('error', '部屋に入れませんでした。');
+            return redirect('/enter')->with('error', '部屋に入れませんでした。');
+            //無理矢理エラーにしてるが、ちゃんとエラーにできないか。
         }
         //同じパスワードを拒否
         //時間で部屋がアクティブか判断
+        
+        
+
     }
 
-    public function wait()
+    public function wait(Room $room, User $user)
     {
-        return view('wait');
+    
+
+        return view('wait', compact('room', 'user'));
     }
 
         

@@ -32,11 +32,12 @@ Route::middleware('auth')->group(function () {
 Route::controller(BuildController::class)->middleware(['auth'])->group(function(){
     Route::get('/', 'index')->name('index');  //本当はホームはミドルウェアから外したたいが、エラーになるため中に入れとく。
     Route::get('/create', 'create')->name('create');
-    Route::post('/create', 'rstore')->name('rstore');
+    Route::post('/create', 'storeRoom')->name('storeRoom');
     Route::get('/start/{room}', 'start')->name('start');
+    Route::post('/start', 'startRoomPost')->name('startRoomPost');
     Route::get('/enter', 'enter')->name('enter');
-    Route::post('/enter', 'rustore')->name('rustore');
-    Route::get('/wait', 'wait')->name('wait');
+    Route::post('/enter', 'joinRoom')->name('joinRoom');
+    Route::get('/wait/{room}/{user}', 'wait')->name('wait');
 });
 
 require __DIR__.'/auth.php';
