@@ -25,14 +25,14 @@ class RoomSeeder extends Seeder
 
         DB::table('rooms')->insert([
             'roomname' => 'room2',
-            'roompass' => '7777',
+            'roompass' => '8888',
             'created_at' => new DateTime(),
             'updated_at' => new DateTime(),
         ]);
 
         DB::table('rooms')->insert([
             'roomname' => 'room3',
-            'roompass' => '7777',
+            'roompass' => '9999',
             'created_at' => new DateTime(),
             'updated_at' => new DateTime(),
         ]);

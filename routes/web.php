@@ -15,7 +15,7 @@ use App\Http\Controllers\BuildController;
 |
 */
 
-//Route::get('/', [BuildController::class, 'index'])->name('index');
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -27,7 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/', [BuildController::class, 'index'])->name('index');
+//Route::get('/', [BuildController::class, 'index'])->name('index');
 
 Route::controller(BuildController::class)->middleware(['auth'])->group(function(){
     Route::get('/', 'index')->name('index');  //本当はホームはミドルウェアから外したたいが、エラーになるため中に入れとく。
@@ -35,6 +35,8 @@ Route::controller(BuildController::class)->middleware(['auth'])->group(function(
     Route::post('/create', 'rstore')->name('rstore');
     Route::get('/start/{room}', 'start')->name('start');
     Route::get('/enter', 'enter')->name('enter');
+    Route::post('/enter', 'rustore')->name('rustore');
+    Route::get('/wait', 'wait')->name('wait');
 });
 
 require __DIR__.'/auth.php';

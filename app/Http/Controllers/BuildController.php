@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Room;
 use App\Http\Requests\BuildRequest;
+use App\Http\Requests\EnterRequest;
 
 class BuildController extends Controller
 {
@@ -38,4 +39,28 @@ class BuildController extends Controller
     {
         return view('enter');
     }
+
+    public function rustore(EnterRequest $request)
+    {
+        
+        $room = Room::where('roompass', $request->roompass)->first();//$room = Room::whereのほうがいい可能性あり。
+        if ($room){
+            return redirect('/wait');//ユーザーとルームのidを合わせた固有の値を使いたい。
+        } else {
+            //errorを渡したい。
+            return redirect()->back()->with('error', '部屋に入れませんでした。');
+        }
+        //同じパスワードを拒否
+        //時間で部屋がアクティブか判断
+    }
+
+    public function wait()
+    {
+        return view('wait');
+    }
+
+        
+        
+    
+        
 }
