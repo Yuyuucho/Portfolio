@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BuildController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,12 +15,26 @@ use App\Http\Controllers\BuildController;
 |
 */
 
-Route::get('/', [BuildController::class, 'index']);
+//Route::get('/', [BuildController::class, 'index'])->name('index');
 
-Route::get('/create', [BuildController::class, 'create']);
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::post('/create', [BuildController::class, 'rstore']);
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-Route::get('/start/{room}', [BuildController::class, 'start']);
+Route::get('/', [BuildController::class, 'index'])->name('index');
 
-Route::get('/enter', [BuildController::class, 'enter']);
+Route::controller(BuildController::class)->middleware(['auth'])->group(function(){
+    Route::get('/', 'index')->name('index');  //本当はホームはミドルウェアから外したたいが、エラーになるため中に入れとく。
+    Route::get('/create', 'create')->name('create');
+    Route::post('/create', 'rstore')->name('rstore');
+    Route::get('/start/{room}', 'start')->name('start');
+    Route::get('/enter', 'enter')->name('enter');
+});
+
+require __DIR__.'/auth.php';

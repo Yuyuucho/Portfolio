@@ -6,16 +6,14 @@
     <title>Build</title>
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
 </head>
-<body>
-    <div>
-        <ul>
-            <li><a href="/create">部屋を建てる</a></li>
-            <li><a href="/enter">部屋に入る</a></li>
-        </ul>
-        
-        
-    </div>
-    
-
-</body>
+<x-app-layout>
+    <body>
+        <div>
+            <ul>
+                <li><a href="/create">部屋を建てる</a></li>
+                <li><a href="/enter">部屋に入る</a></li>
+            </ul>          
+        </div>       
+    </body>
+</x-app-layout>
 </html>
