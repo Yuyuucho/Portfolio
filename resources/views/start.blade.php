@@ -6,6 +6,7 @@
     <title>Build</title>
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
 </head>
+<x-app-layout>
 <body>
     <h1>{{ $room->roomname }}</h1>
     <div>
@@ -20,4 +21,5 @@
         <div><input type="submit" value="マッチ開始" /></div>
     </form>  
 </body>
+</x-app-layout>
 </html>
