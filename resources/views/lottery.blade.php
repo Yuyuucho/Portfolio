@@ -8,9 +8,15 @@
 </head>
 <x-app-layout>
 <body>
-    <!-- 部屋名、部屋主名を表示 -->
-    <h1>待機中・・・</h1>
-    <p>部屋主が開始するのを待っています。</p>
+    <h1>当選者</h1>
+    <div>
+        <ul>
+            @foreach ($randomUsers as $randomUser)
+                <li>{{ $randomUser->name }}</li>
+            @endforeach
+        </ul>
+    </div>
+    
 </body>
 </x-app-layout>
 </html>

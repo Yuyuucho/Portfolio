@@ -34,10 +34,11 @@ Route::controller(BuildController::class)->middleware(['auth'])->group(function(
     Route::get('/create', 'create')->name('create');
     Route::post('/create', 'storeRoom')->name('storeRoom');
     Route::get('/start/{room}', 'start')->name('start');
-    Route::post('/start', 'startRoomPost')->name('startRoomPost');
+    Route::put('/start/{room}', 'startRoomPost')->name('startRoomPost');
     Route::get('/enter', 'enter')->name('enter');
     Route::post('/enter', 'joinRoom')->name('joinRoom');
     Route::get('/wait/{room}/{user}', 'wait')->name('wait');
+    Route::get('/lottery/{room}', 'lottery')->name('lottery');
 });
 
 require __DIR__.'/auth.php';
