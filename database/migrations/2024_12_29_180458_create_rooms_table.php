@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('roomname', 20);
             $table->string('roompass', 50);
             $table->string('gamepass', 20)->nullable();
+            $table->boolean("is_active")->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

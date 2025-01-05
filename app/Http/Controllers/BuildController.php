@@ -30,7 +30,7 @@ class BuildController extends Controller
         $userId = Auth::id();
         $user = User::findOrFail($userId);
         $room->users()->syncWithoutDetaching([
-            $user->id => ['is_owner' => 1]
+            $user->id => ['is_owner' => true]
         ]);//中間テーブルの生成
 
         return redirect('/start/' .$room->id);
@@ -44,16 +44,15 @@ class BuildController extends Controller
 
     public function start(Room $room)
     {
-        return view('start')->with(['room' => $room]);
+        return view('start', compact('room'));
     }
 
     public function startRoomPost(StartRequest $request, Room $room)
     {
-        //gamepassの更新
-        $room->gamepass = $request->gamepass;
-        $room->save();
-
-        
+        $room->update([
+            'gamepass' => $request->gamepass,
+            'is_active' => true,
+        ]);
         return redirect('/lottery/' .$room->id);
     }
 
@@ -68,7 +67,7 @@ class BuildController extends Controller
         $user = User::findOrFail($userId);
         $room = Room::where('roompass', $request->roompass)->first();
         if ($room){
-            $room->users()->syncWithoutDetaching($user->id);
+            $room->users()->syncWithoutDetaching([$user->id]);
             return redirect('/wait/' .$room->id .'/' .$user->id);
         } else {
             return redirect('/enter')->with('error', '部屋に入れませんでした。');
@@ -83,23 +82,29 @@ class BuildController extends Controller
 
     public function wait(Room $room, User $user)
     {
-    
-
         return view('wait', compact('room', 'user'));
     }
 
     public function lottery(Room $room)
     {
         //ユーザーのランダム抽出
-        $randomUsers = Room::find($room->id)
-            ->users()
-            ->where('is_owner', 0)
+        $randomUserIds = $room->users()
+            ->where('is_owner', 0)//falseにしたい
             ->inRandomOrder()
             ->take(2)
-            ->get();
+            ->pluck('users.id');
+            //is_activeも判断
 
-        //is_activeも判断
-        return view('lottery')->with('randomUsers', $randomUsers);;
+        //is_winnerの更新
+        if ($randomUserIds->isNotEmpty()){
+            $room->users()
+                ->whereIn('users.id', $randomUserIds)
+                ->update(['is_winner' => true]);
+        }
+        
+        $randomUsers = $room->users()->whereIn('users.id', $randomUserIds)->get();
+
+        return view('lottery', compact('randomUsers'));
     }
         
     

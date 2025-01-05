@@ -45,6 +45,6 @@ class User extends Authenticatable
 
     public function rooms()
     {
-        return $this->belongsToMany(Room::class, 'user_room')->withTimestamps();
+        return $this->belongsToMany(Room::class, 'user_room')->withPivot('is_winner')->withTimestamps();
     }
 }
