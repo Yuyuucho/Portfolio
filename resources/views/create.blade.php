@@ -25,7 +25,7 @@
                 <div>
                     <label for="gamepass">ゲーム内パスワード</label>
                     <input type="password" name="room[gamepass]" id="gamepass" placeholder="後で設定可能" value="{{ old('room.gamepass') }}" />
-                    <p class="xgamepass__error" style="color:red">{{ $errors->first('room.gamepass') }}</p>
+                    <p class="gamepass__error" style="color:red">{{ $errors->first('room.gamepass') }}</p>
                 </div>
                 <div><input type="submit" value="作成する" /></div>
             </form>       
