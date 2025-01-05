@@ -15,11 +15,12 @@ class Room extends Model
         'roomname',
         'roompass',
         'gamepass',
+        'is_active',
     ];
 
     public function users()
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->belongsToMany(User::class)->withPivot('is_winner')->withTimestamps();
     }
 
     

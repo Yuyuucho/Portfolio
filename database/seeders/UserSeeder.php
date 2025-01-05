@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use DateTime;
 
 class UserSeeder extends Seeder
@@ -19,7 +20,7 @@ class UserSeeder extends Seeder
         DB::table('users')->insert([
             'name' => '太郎',
             'email' => 'b@nana',
-            'password' => 7777,
+            'password' => Hash::make('77777777'),
             'created_at' => new DateTime(),
             'updated_at' => new DateTime(),
         ]);
@@ -27,15 +28,15 @@ class UserSeeder extends Seeder
         DB::table('users')->insert([
             'name' => '雄太',
             'email' => 'or@nge',
-            'password' => 7777,
+            'password' => Hash::make('77777777'),
             'created_at' => new DateTime(),
             'updated_at' => new DateTime(),
         ]);
 
         DB::table('users')->insert([
             'name' => '琉奈',
-            'email' => '@pple',
-            'password' => 7777,
+            'email' => 'a@pple',
+            'password' => Hash::make('77777777'),
             'created_at' => new DateTime(),
             'updated_at' => new DateTime(),
         ]);
