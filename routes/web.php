@@ -38,6 +38,8 @@ Route::controller(BuildController::class)->middleware(['auth'])->group(function(
     Route::post('/enter', 'joinRoom')->name('joinRoom');
     Route::get('/wait/{room}/{user}', 'wait')->name('wait');
     Route::get('/lottery/{room}', 'lottery')->name('lottery');
+    Route::put('/lottery/{room}', 'nextLottery')->name('nextLottery');
+    Route::delete('/lottery/{room}', 'destroyRoom')->name('destroyRoom');
 });
 
 require __DIR__.'/auth.php';

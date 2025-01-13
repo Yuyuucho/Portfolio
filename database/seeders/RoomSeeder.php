@@ -16,6 +16,7 @@ class RoomSeeder extends Seeder
     {
         DB::table('rooms')->delete();
 
+        /*
         DB::table('rooms')->insert([
         'roomname' => 'room1',
         'roompass' => '7777',
@@ -36,5 +37,6 @@ class RoomSeeder extends Seeder
             'created_at' => new DateTime(),
             'updated_at' => new DateTime(),
         ]);
+        */
     }
 }

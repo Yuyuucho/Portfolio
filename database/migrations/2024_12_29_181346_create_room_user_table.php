@@ -17,8 +17,10 @@ return new class extends Migration
             $table->foreignId("room_id")->constrained()->cascadeOnDelete();
             $table->boolean("is_owner")->default(0);
             $table->boolean("is_winner")->default(0);
+            $table->unsignedInteger('win_count')->default(0);
             $table->boolean("is_active")->default(0);
             $table->timestamps();
+            $table->timestamp("enter_timing")->nullable();
             $table->softDeletes();
         });
     }

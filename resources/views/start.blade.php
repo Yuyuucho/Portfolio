@@ -17,8 +17,25 @@
         @method('PUT')
         <div>
             <label for="gamepass">ゲーム内パスワード</label>
-            <input type="password" name="gamepass" id="gamepass" value="{{ $room->gamepass }}"/>
-            <p class="gamepass__error" style="color:red">{{ $errors->first('gamepass') }}</p>
+            <input type="password" name="room[gamepass]" id="gamepass" value="{{ $room->gamepass }}"/>
+            @if ($errors->has('room.gamepass'))
+                <p class="gamepass__error" style="color:red">{{ $errors->first('room.gamepass') }}</p>
+            @endif
+            
+        </div>
+        <div>
+            <label for="number_of_winners">抽選人数</label>
+            <input type="number" name="room[number_of_winners]" id="number_of_winners" min="1" max="99" value="{{ $room->number_of_winners }}" />
+            @if ($errors->has('room.number_of_winners'))
+                <p class="number_of_winners__error" style="color:red">{{ $errors->first('room.number_of_winners') }}</p>
+            @endif
+        </div>
+        <div>
+            <label for="max_win">最大当選回数</label>
+            <input type="number" name="room[max_win]" id="max_win" min="1" max="99" value="{{ $room->max_win }}" />
+            @if ($errors->has('room.max_win'))
+                <p class="max_win__error" style="color:red">{{ $errors->first('room.max_win') }}</p>
+            @endif
         </div>
         <div><input type="submit" value="マッチ開始" /></div>
     </form>  
