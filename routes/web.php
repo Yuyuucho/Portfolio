@@ -27,10 +27,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-//Route::get('/', [BuildController::class, 'index'])->name('index');
+Route::get('/', [BuildController::class, 'index'])->name('index');
 
 Route::controller(BuildController::class)->middleware(['auth'])->group(function(){
-    Route::get('/', 'index')->name('index');  //本当はホームはミドルウェアから外したたいが、エラーになるため中に入れとく。
     Route::get('/create', 'create')->name('create');
     Route::post('/create', 'storeRoom')->name('storeRoom');
     Route::get('/start/{room}', 'start')->name('start');

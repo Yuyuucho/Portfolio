@@ -14,18 +14,29 @@
                 <div>
                     <label for="roomname">部屋名</label>
                     <input type="text" name="room[roomname]" id="roomname" placeholder="部屋名" value="{{ old('room.roomname') }}" />
-                    <p class="roomname__error" style="color:red">{{ $errors->first('room.roomname') }}</p>
+                    @if ($errors->has('room.roomname'))
+                        <p class="roomname__error" style="color:red">{{ $errors->first('room.roomname') }}</p>
+                    @endif
                 </div>
                 <div>
                     <label for="roompass">部屋パスワード</label>
                     <!-- パスワードの桁数はデータベースと相談。requestファイルで指定。 -->
                     <input type="password" name="room[roompass]" id="roompass" value="{{ old('room.roompass') }}" />
-                    <p class="roompass__error" style="color:red">{{ $errors->first('room.roompass') }}</p>
+                    @if ($errors->has('room.roompass'))
+                        <p class="roompass__error" style="color:red">{{ $errors->first('room.roompass') }}</p>
+                    @endif
+                    @if ($errors->has('error'))
+                        <div class="alert alert-danger">
+                            {{ $errors->first('error') }}
+                        </div>
+                    @endif
                 </div>
                 <div>
                     <label for="gamepass">ゲーム内パスワード</label>
                     <input type="password" name="room[gamepass]" id="gamepass" placeholder="後で設定可能" value="{{ old('room.gamepass') }}" />
-                    <p class="gamepass__error" style="color:red">{{ $errors->first('room.gamepass') }}</p>
+                    @if ($errors->has('room.gamepass'))
+                        <p class="gamepass__error" style="color:red">{{ $errors->first('room.gamepass') }}</p>
+                    @endif
                 </div>
                 <div><input type="submit" value="作成する" /></div>
             </form>       

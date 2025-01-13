@@ -8,18 +8,16 @@
 </head>
 <x-app-layout>
 <body>
-    <!-- 部屋名、部屋主名を表示 -->
-    @php
-        $pivotData = $room->users()->where('users.id', $user->id)->first()?->pivot;
-    @endphp
-     @if (! $room->is_active)
+    <!-- 部屋名、部屋主名を表示 (コントローラーで処理) -->
+    @if (! $room->is_active || $enterTiming)
     <h1>待機中・・・</h1>
-    <p>部屋主が開始するのを待っています。</p>
+    <p>{{ $owner->name }}の抽選開始を待っています。</p>
     @else
         @if ($pivotData && $pivotData->is_winner)
         <h1>当選しました。</h1>
+        <h1>{{ $room->gamepass }}</h1>
         @else
-        <h1>落選しました。</h1>
+        <h1>落選しました。{{ $owner->name }}による次の抽選開始をお待ちください。</h1>
         @endif
     @endif
 </body>
