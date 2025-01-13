@@ -8,6 +8,7 @@ use App\Http\Requests\BuildRequest;
 use App\Http\Requests\EnterRequest;
 use App\Http\Requests\StartRequest;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 
 class BuildController extends Controller
@@ -24,35 +25,54 @@ class BuildController extends Controller
 
     public function storeRoom(BuildRequest $request, Room $room)
     {
-        $input = $request['room'];
-        $room->fill($input)->save();
-
+        $input = $request->input('room');
         $userId = Auth::id();
         $user = User::findOrFail($userId);
+        //roompassの重複不可
+        $existingRoom = $room->Where('roompass', $input['roompass'])->first();
+        if ($existingRoom){
+            $isOwner = $existingRoom->users()
+                ->where('user_id', $userId)
+                ->wherePivot('is_owner', true)
+                ->exists();
+                if($isOwner){
+                    $existingRoom->fill($input)->save();
+                    //中間テーブルの生成
+                    $existingRoom->users()->syncWithoutDetaching([
+                        $user->id => ['is_owner' => true]
+                    ]);
+                    return redirect('/start/' .$existingRoom->id);
+                }
+                return redirect('/create')->withErrors([
+                    'error' => 'そのルームパスはすでに使用されています。'
+                ]);
+        }
+        
+        $room->fill($input)->save();
+        //中間テーブルの生成
         $room->users()->syncWithoutDetaching([
             $user->id => ['is_owner' => true]
-        ]);//中間テーブルの生成
-
+        ]);
         return redirect('/start/' .$room->id);
-
-        //処理が上手くいった時は"/start"へリダイレクトされ、そうじゃないときは"/create"にエラー内容が表示されるようにしたい。
-        //ここで中間テーブルも作成したいから、どのユーザーがアクセスしたかは大事。/create/{id}に後で修正してみる。
-        //redirect後も'/start/{id}'にリダイレクトするようにする。
-        //パスワードがかぶったとき、isownerがtrueの人はデータベースを更新できるようにする。
-        //既存のパスワードの禁止(自分で生成した部屋のみ可能)
     }
 
     public function start(Room $room)
     {
-        return view('start', compact('room'));
+        $accessNumber = $room->users()
+            ->where('is_owner', false)
+            ->where('room_user.updated_at', '>=', Carbon::now()->subHour())
+            ->count();
+        return view('start', compact('room', 'accessNumber'));
     }
 
     public function startRoomPost(StartRequest $request, Room $room)
     {
-        $room->update([
+        $room->fill([
             'gamepass' => $request->gamepass,
             'is_active' => true,
-        ]);
+            ])
+            ->save();
+        $room->touch();
         return redirect('/lottery/' .$room->id);
     }
 
@@ -68,13 +88,16 @@ class BuildController extends Controller
         $room = Room::where('roompass', $request->roompass)->first();
         if ($room){
             $room->users()->syncWithoutDetaching([$user->id]);
+            $room->users()->where('user_id', $userId)->update(['room_user.updated_at' => now()]);
             return redirect('/wait/' .$room->id .'/' .$user->id);
         } else {
             return redirect('/enter')->with('error', '部屋に入れませんでした。');
             //無理矢理エラーにしてるが、ちゃんとエラーにできないか。
         }
         //同じパスワードを拒否
-        //時間で部屋がアクティブか判断
+        //時間で部屋がアクティブか判断 バッチ
+        //room解散をしたとき
+        //compact
         
         
 
@@ -82,18 +105,30 @@ class BuildController extends Controller
 
     public function wait(Room $room, User $user)
     {
-        return view('wait', compact('room', 'user'));
+        $owner = $room->users()
+            ->where('is_owner', true)
+            ->first(['name']);
+
+        $pivotData = $room->users()->where('users.id', $user->id)->first()->pivot;
+
+        $userRoomTimestamp = $room->users()
+            ->where('user_id', $user->id)
+            ->first(['room_user.updated_at'])
+            ->updated_at ?? null;
+        $enterTiming = $room->updated_at < $userRoomTimestamp;
+        return view('wait', compact('room', 'user', 'owner', 'pivotData', 'enterTiming'));
     }
 
     public function lottery(Room $room)
-    {
+    {        
         //ユーザーのランダム抽出
         $randomUserIds = $room->users()
-            ->where('is_owner', 0)//falseにしたい
+            ->where('is_owner', false)//変更
             ->inRandomOrder()
             ->take(2)
             ->pluck('users.id');
             //is_activeも判断
+            //is_winnerがtrueかどうか判断して重複を回避
 
         //is_winnerの更新
         if ($randomUserIds->isNotEmpty()){

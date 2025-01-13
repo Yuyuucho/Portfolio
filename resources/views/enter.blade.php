@@ -14,10 +14,12 @@
             <div>
                 <label for="roompass">部屋パスワード</label>
                 <!-- パスワードの桁数はデータベースと相談。requestファイルで指定。
-                     パスワードの表示/非表示を切り替えるにはJSが必要らしい。要検討-->
+                     パスワードの表示/非表示を切り替えるにはJSが必要らしい。要検討
+                     usersの設定を参考-->
                 <input type="password" name="roompass" id="roompass" placeholder="部屋パスワード" value="{{ old('roompass') }}" />
                 <p class="roompass__error" style="color:red">{{ $errors->first('roompass') }}</p>
             </div>
+<!-- いらないかも -->
             @if (session('error'))
                 <div class="alert alert-danger">
                     {{ session('error') }}

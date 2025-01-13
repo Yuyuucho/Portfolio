@@ -10,7 +10,7 @@
 <body>
     <h1>{{ $room->roomname }}</h1>
     <div>
-       接続数 {} 名
+       接続数 {{ $accessNumber }} 名
     </div>
     <form action="/start/{{ $room->id }}" method="POST">
         @csrf
