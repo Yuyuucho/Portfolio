@@ -32,10 +32,24 @@
                     @endif
                 </div>
                 <div>
-                    <label for="gamepass">ゲーム内パスワード</label>
-                    <input type="password" name="room[gamepass]" id="gamepass" placeholder="後で設定可能" value="{{ old('room.gamepass') }}" />
+                    <label for="gamepass">ゲーム内パスワード(※後で設定可能)</label>
+                    <input type="password" name="room[gamepass]" id="gamepass"  value="{{ old('room.gamepass') }}" />
                     @if ($errors->has('room.gamepass'))
                         <p class="gamepass__error" style="color:red">{{ $errors->first('room.gamepass') }}</p>
+                    @endif
+                </div>
+                <div>
+                    <label for="number_of_winners">抽選人数(※後で設定可能)</label>
+                    <input type="number" name="room[number_of_winners]" id="number_of_winners" min="1" max="99" value="{{ old('room.number_of_winners') }}" />
+                    @if ($errors->has('room.number_of_winners'))
+                        <p class="number_of_winners__error" style="color:red">{{ $errors->first('room.number_of_winners') }}</p>
+                    @endif
+                </div>
+                <div>
+                    <label for="max_win">最大当選回数(※後で設定可能)</label>
+                    <input type="number" name="room[max_win]" id="max_win" min="1" max="99" value="{{ old('room.max_win') }}" />
+                    @if ($errors->has('room.max_win'))
+                        <p class="max_win__error" style="color:red">{{ $errors->first('room.max_win') }}</p>
                     @endif
                 </div>
                 <div><input type="submit" value="作成する" /></div>

@@ -15,7 +15,11 @@ class Room extends Model
         'roomname',
         'roompass',
         'gamepass',
+        'number_of_winners',
+        'max_win',
         'is_active',
+
+
     ];
 
     public function users()

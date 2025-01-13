@@ -67,12 +67,9 @@ class BuildController extends Controller
 
     public function startRoomPost(StartRequest $request, Room $room)
     {
-        $room->fill([
-            'gamepass' => $request->gamepass,
-            'is_active' => true,
-            ])
-            ->save();
-        $room->touch();
+        $input = $request->input('room');
+        $input['is_active'] = true;//is_activeをfalseにするロジックを後で追加する
+        $room->fill($input)->save();
         return redirect('/lottery/' .$room->id);
     }
 
@@ -88,19 +85,16 @@ class BuildController extends Controller
         $room = Room::where('roompass', $request->roompass)->first();
         if ($room){
             $room->users()->syncWithoutDetaching([$user->id]);
-            $room->users()->where('user_id', $userId)->update(['room_user.updated_at' => now()]);
+            $room->users()->where('user_id', $userId)->update(['room_user.enter_timing' => now()]);
             return redirect('/wait/' .$room->id .'/' .$user->id);
         } else {
-            return redirect('/enter')->with('error', '部屋に入れませんでした。');
-            //無理矢理エラーにしてるが、ちゃんとエラーにできないか。
+            return redirect('/enter')->withErrors([
+                'error' => '部屋に入れませんでした。'
+            ]);
         }
-        //同じパスワードを拒否
+        
         //時間で部屋がアクティブか判断 バッチ
-        //room解散をしたとき
-        //compact
-        
-        
-
+        //room解散をしたとき     
     }
 
     public function wait(Room $room, User $user)
@@ -113,35 +107,53 @@ class BuildController extends Controller
 
         $userRoomTimestamp = $room->users()
             ->where('user_id', $user->id)
-            ->first(['room_user.updated_at'])
+            ->first(['room_user.enter_timing'])
             ->updated_at ?? null;
         $enterTiming = $room->updated_at < $userRoomTimestamp;
         return view('wait', compact('room', 'user', 'owner', 'pivotData', 'enterTiming'));
     }
 
     public function lottery(Room $room)
-    {        
+    {   
+        //is_winnerをリセット     
+        $room->users()
+            ->where('is_winner', true)
+            ->update(['is_winner' => false]);
         //ユーザーのランダム抽出
         $randomUserIds = $room->users()
-            ->where('is_owner', false)//変更
+            ->where('is_owner', false)
+            ->where('win_count', '<', $room->max_win)
             ->inRandomOrder()
-            ->take(2)
+            ->take($room->number_of_winners)
             ->pluck('users.id');
-            //is_activeも判断
-            //is_winnerがtrueかどうか判断して重複を回避
+            //is_activeも判断        
 
         //is_winnerの更新
         if ($randomUserIds->isNotEmpty()){
             $room->users()
                 ->whereIn('users.id', $randomUserIds)
                 ->update(['is_winner' => true]);
-        }
-        
+            foreach ($randomUserIds as $userId) {
+            $room->users()
+                ->updateExistingPivot($userId, ['win_count' => \DB::raw('win_count + 1')]);
+            }
+        }        
         $randomUsers = $room->users()->whereIn('users.id', $randomUserIds)->get();
-
-        return view('lottery', compact('randomUsers'));
+        return view('lottery', compact('randomUsers', 'room'));
     }
-        
+
+    public function nextLottery(StartRequest $request, Room $room)
+    {
+        $input = $request->input('room');
+        $input['is_active'] = true;
+        $room->fill($input)->save();
+        return redirect('/lottery/' .$room->id);
+    }
     
+    public function destroyRoom(Room $room)
+    {
+        $room->delete();
+        return redirect('/');
+    }
         
 }

@@ -19,10 +19,9 @@
                 <input type="password" name="roompass" id="roompass" placeholder="部屋パスワード" value="{{ old('roompass') }}" />
                 <p class="roompass__error" style="color:red">{{ $errors->first('roompass') }}</p>
             </div>
-<!-- いらないかも -->
-            @if (session('error'))
+            @if ($errors->has('error'))
                 <div class="alert alert-danger">
-                    {{ session('error') }}
+                    {{ $errors->first('error') }}
                 </div>
             @endif
             <div><input type="submit" value="部屋に入る" /></div>
