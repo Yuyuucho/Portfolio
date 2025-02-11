@@ -21,8 +21,8 @@ class BuildRequest extends FormRequest
             'room.roomname' => 'required|string|max:10',
             'room.roompass' => 'required|string|max:10',
             'room.gamepass' => 'nullable|string',
-            'room.number_of_winners' => 'required|min:1|max:99',
-            'room.max_win' => 'required|min:1|max:99',
+            'room.number_of_winners' => 'nullable|min:1|max:99',
+            'room.max_win' => 'nullable|min:1|max:99',
         ];
     }
 }
