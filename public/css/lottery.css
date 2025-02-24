@@ -35,6 +35,10 @@
 }
 
 .winner-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     font-size: 18px;
     padding: 10px;
     margin: 5px 0;
@@ -42,6 +46,17 @@
     border-radius: 6px;
     font-weight: bold;
     font-family: 'DotGothic16';
+}
+
+.winner {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    flex-grow: 1;
+}
+
+.new {
+    color: #ff0000;
 }
 
 /* 設定変更のdetailsタグ */

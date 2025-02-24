@@ -22,6 +22,9 @@ class StartRequest extends FormRequest
             'room.gamepass' => 'required|string|max:10',
             'room.number_of_winners' => 'required|min:1|max:99',
             'room.max_win' => 'required|min:1|max:99',
+            'kick_or_ban' => [
+                'id' => 'nullable',
+            ]
         ];
     }
 }

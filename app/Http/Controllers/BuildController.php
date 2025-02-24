@@ -83,6 +83,7 @@ class BuildController extends Controller
         $userId = Auth::id();
         $user = User::findOrFail($userId);
         $room = Room::where('roompass', $request->roompass)->first();
+        /*banの記述の追加 */
         if ($room){
             $room->users()->syncWithoutDetaching([$user->id]);
             $room->users()->where('user_id', $userId)->update(['room_user.enter_timing' => now()]);
@@ -99,6 +100,7 @@ class BuildController extends Controller
 
     public function wait(Room $room, User $user)
     {
+        /*ここにもbanの記述が必要そう */
         $owner = $room->users()
             ->where('is_owner', true)
             ->first(['name']);
@@ -107,8 +109,8 @@ class BuildController extends Controller
 
         $userRoomTimestamp = $room->users()
             ->where('user_id', $user->id)
-            ->first(['room_user.enter_timing'])
-            ->updated_at ?? null;
+            ->pluck('room_user.enter_timing')
+            ->first();
         $enterTiming = $room->updated_at < $userRoomTimestamp;
         return view('wait', compact('room', 'user', 'owner', 'pivotData', 'enterTiming'));
     }
@@ -120,13 +122,14 @@ class BuildController extends Controller
             ->where('is_winner', true)
             ->update(['is_winner' => false]);
         //ユーザーのランダム抽出
+        /*banの記述を追加 */
         $randomUserIds = $room->users()
             ->where('is_owner', false)
             ->where('win_count', '<', $room->max_win)
             ->inRandomOrder()
             ->take($room->number_of_winners)
             ->pluck('users.id');
-            //is_activeも判断        
+            //is_activeも判断
 
         //is_winnerの更新
         if ($randomUserIds->isNotEmpty()){
@@ -139,7 +142,8 @@ class BuildController extends Controller
             }
         }        
         $randomUsers = $room->users()->whereIn('users.id', $randomUserIds)->get();
-        return view('lottery', compact('randomUsers', 'room'));
+        $addUsers = '';
+        return view('lottery', compact('randomUsers', 'addUsers', 'room'));
     }
 
     public function nextLottery(StartRequest $request, Room $room)
@@ -149,6 +153,51 @@ class BuildController extends Controller
         $room->fill($input)->save();
         return redirect('/lottery/' .$room->id);
     }
+
+    public function addLottery(StartRequest $request, Room $room)
+    {
+        $room->users()
+        ->whereIn('status', ['kicked', 'added'])
+        ->update(['status' => null]);
+        $kickOrBanData = $request->input('kick_or_ban');
+        foreach ($kickOrBanData as $userId => $action) {
+            if ($action ==='kick' || $action === 'ban') {
+                $status = $action === 'kick' ? 'kicked' : 'banned';/* */
+                $room->users()
+                ->updateExistingPivot($userId, [
+                    'is_winner' => false,
+                    'status' => $status,
+                ]);
+                /*banの記述を追加。 */
+                $newWinnerId = $room->users()
+                ->where('is_owner', false)
+                ->where('is_winner', false)
+                ->where('win_count', '<', $room->max_win)
+                ->limit(1)
+                ->pluck('users.id')
+                ->first();
+
+                if ($newWinnerId) {
+                    $room->users()
+                    ->updateExistingPivot($newWinnerId, [
+                        'is_winner' => true,
+                        'status' => 'added',
+                    ]);
+                }                
+            }
+        }
+        $randomUsers = $room->users()
+        ->where('is_winner', true)
+        ->where('status', null)
+        ->get();
+        $addUsers = $room->users()
+        ->where('is_winner', true)
+        ->where('status', 'added')
+        ->get();
+
+        return view('lottery', compact('randomUsers', 'addUsers', 'room'));
+    }
+
     
     public function destroyRoom(Room $room)
     {
