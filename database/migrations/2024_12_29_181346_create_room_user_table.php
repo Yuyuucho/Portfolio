@@ -19,6 +19,7 @@ return new class extends Migration
             $table->boolean("is_winner")->default(0);
             $table->unsignedInteger('win_count')->default(0);
             $table->boolean("is_active")->default(0);
+            $table->string("status", 6)->nullable();
             $table->timestamps();
             $table->timestamp("enter_timing")->nullable();
             $table->softDeletes();

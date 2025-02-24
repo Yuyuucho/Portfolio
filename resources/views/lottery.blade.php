@@ -12,17 +12,38 @@
     <div class="body">
         <div class="container">        
             <h1 class="title">当選者</h1>
-            <div class="winner-list">
-                <ul>
-                    @foreach ($randomUsers as $randomUser)
-                        <li>{{ $randomUser->name }}</li>
-                    @endforeach
-                </ul>
-            </div>
+            
 
-            <form action="/lottery/{{ $room->id }}" method="POST" class="form-container">    
+            <form action="?" method="POST" class="form-container">    
                 @csrf
                 @method('PUT')
+                <div class="winner-list">
+                    <ul>
+                        @foreach ($randomUsers as $randomUser)
+                            <li>
+                                <div class="winner">{{ $randomUser->name }}</div>
+                                <select name="kick_or_ban[{{ $randomUser->id }}]" id="kick_or_ban_{{ $randomUser->id }}">
+                                    <option value=""></option>
+                                    <option value="kick">KICK</option>
+                                    <option value="ban">BAN</option>
+                                </select>
+                            </li>
+                        @endforeach
+                        @if ($addUsers)
+                            <li><div class="new">New!!</div></li>
+                            @foreach ($addUsers as $addUser)
+                                <li>                                    
+                                    <div class="winner">{{ $addUser->name }}</div>
+                                    <select name="kick_or_ban[{{ $addUser->id }}]" id="kick_or_ban_{{ $addUser->id }}">
+                                        <option value=""></option>
+                                        <option value="kick">KICK</option>
+                                        <option value="ban">BAN</option>
+                                    </select>
+                                </li>
+                            @endforeach
+                        @endif
+                    </ul>
+                </div>
                 <details class="settings">
                     <summary class="settings-summary">設定の変更</summary>
                     <div class="form-group">            
@@ -46,8 +67,9 @@
                             <p class="error">{{ $errors->first('room.max_win') }}</p>
                         @endif
                     </div>
-                </details>              
-                <input type="submit" value="もう一度抽選する" class="button" />
+                </details>
+                <input type="submit" value="もう一度抽選する" class="button" formaction="/lottery/again/{{ $room->id }}" />
+                <input type="submit" value="Kick/Banして追加抽選する" class="button" formaction="/lottery/add/{{ $room->id }}" onclick="addLottery({{ $room->id }})"/>
             </form>
 
             <form action="/lottery/{{ $room->id }}" method="post" class="form-contaier">
@@ -58,13 +80,21 @@
         </div>
     </div>
     <script>
+        function addLottery(id) {
+            'use strict'
+            if (confirm('ゲーム内パスワードの変更はお済ですか？')) {
+                document.getElementById(`form_${id}`).submit();
+            }
+        }
+    </script>
+    <script>
         function deleteRoom(id) {
             'use strict'
             if (confirm('本当に解散しますか？')) {
                 document.getElementById(`form_${id}`).submit();
             }
         }
-    </script>      
+    </script>
 </body>
 </x-app-layout>
 </html>
