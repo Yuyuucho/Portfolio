@@ -6,9 +6,11 @@
     <title>RE:SCHOOL</title>
     <link href="https://fonts.googleapis.com/css?family=DotGothic16&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/start.css') }}">
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 </head>
 <x-app-layout>
     <body>
+    
         <div class="body">
             <div class="form-container">
                 <div class="room-info">
@@ -16,11 +18,32 @@
                     <span class="room-status">を運営中...</span>
                 </div>
                 <div class="access-count">
-                    接続数: {{ $accessNumber }} 名
+                    接続数: <span id="accessNumber">{{ $accessNumber }}</span> 名
                 </div>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        // Pusherのデバッグを有効化
+                        Pusher.logToConsole = true;
+
+                        var pusher = new Pusher("{{ config('broadcasting.connections.pusher.key') }}", {
+                            cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
+                            forceTLS: true
+                        });
+
+                        var roomId = {{ $room->id }};
+                        var channel = pusher.subscribe("lottery-room." + roomId);
+
+                        // イベント名を "UserVisitedPage" に変更
+                        channel.bind("App\\Events\\UserVisitedPage", function (data) {
+                            console.log("📢 UserVisitedPage イベント受信", data);
+                            if (data.accessNumber !== undefined) {
+                                document.getElementById("accessNumber").textContent = data.accessNumber;
+                            }
+                        });
+                    });
+                </script>
                 <form action="/start/{{ $room->id }}" method="POST">
                     @csrf
-                    @method('PUT')
                     <div class="form-group">
                         <label for="gamepass">ゲーム内パスワード</label>
                         <input type="password" name="room[gamepass]" id="gamepass" value="{{ $room->gamepass }}"/>

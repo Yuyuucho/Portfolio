@@ -37,3 +37,9 @@
     background-color: #3b82f6;
     color: white;
 }
+
+.error {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+}

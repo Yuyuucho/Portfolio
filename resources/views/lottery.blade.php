@@ -6,9 +6,95 @@
     <title>RE:SCHOOL</title>
     <link href="https://fonts.googleapis.com/css?family=DotGothic16&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/lottery.css') }}">
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 </head>
 <x-app-layout>
 <body>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var pusher = new Pusher("{{ config('broadcasting.connections.pusher.key') }}", {
+                            cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
+                            forceTLS: true
+        });
+
+        var channel = pusher.subscribe("lottery-room.{{ $room->id }}");
+
+        // ユーザーリストの更新
+        channel.bind("App\\Events\\LotteryUpdated", function (data) {
+            let winnerList = document.querySelector('.winner-list ul');
+            if (!winnerList) return;
+
+            winnerList.innerHTML = '';
+
+            let winners = data.winners || data.winner || [];
+
+            winners.forEach(winner => {
+                let listItem = document.createElement('li');
+                listItem.setAttribute("data-user-id", winner.id);
+                listItem.innerHTML = `
+                    <div class="winner">${winner.name}</div>
+                    <button type="button" onclick="kickUser(${winner.id})">KICK</button>
+                    <button type="button" onclick="banUser(${winner.id})">BAN</button>
+                `;
+                winnerList.appendChild(listItem);
+            });
+        });
+
+        // KICK/BANされたらリストから削除
+        channel.bind("App\\Events\\KickOrBanUpdated", function (data) {
+            let kickedUser = document.querySelector(`li[data-user-id="${data.userId}"]`);
+            if (kickedUser) kickedUser.remove();
+        });
+    });
+
+    function kickUser(userId) {
+    if (!confirm('本当に KICK しますか？')) return;
+
+    fetch("{{ route('kick', ['room' => $room->id, 'user' => ':userId']) }}".replace(':userId', userId), {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => { throw new Error(text); });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("✅ KICK成功:", data);
+    })
+    .catch(error => {
+        console.error("❌ KICKエラー:", error);
+    });
+}
+
+function banUser(userId) {
+    if (!confirm('本当に BAN しますか？')) return;
+
+    fetch("{{ route('ban', ['room' => $room->id, 'user' => ':userId']) }}".replace(':userId', userId), {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+            "Content-Type": "application/json"
+        }
+    }).then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => { throw new Error(text); });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("✅ BAN成功:", data);
+    })
+    .catch(error => {
+        console.error("❌ BANエラー:", error);
+    });
+}
+</script>
     <div class="body">
         <div class="container">        
             <h1 class="title">当選者</h1>
@@ -16,17 +102,13 @@
 
             <form action="?" method="POST" class="form-container">    
                 @csrf
-                @method('PUT')
                 <div class="winner-list">
                     <ul>
                         @foreach ($randomUsers as $randomUser)
                             <li>
                                 <div class="winner">{{ $randomUser->name }}</div>
-                                <select name="kick_or_ban[{{ $randomUser->id }}]" id="kick_or_ban_{{ $randomUser->id }}">
-                                    <option value=""></option>
-                                    <option value="kick">KICK</option>
-                                    <option value="ban">BAN</option>
-                                </select>
+                                <button type="button" onclick="kickUser({{ $randomUser->id }})">KICK</button>
+                                <button type="button" onclick="banUser({{ $randomUser->id }})">BAN</button>
                             </li>
                         @endforeach
                         @if ($addUsers)
@@ -34,11 +116,8 @@
                             @foreach ($addUsers as $addUser)
                                 <li>                                    
                                     <div class="winner">{{ $addUser->name }}</div>
-                                    <select name="kick_or_ban[{{ $addUser->id }}]" id="kick_or_ban_{{ $addUser->id }}">
-                                        <option value=""></option>
-                                        <option value="kick">KICK</option>
-                                        <option value="ban">BAN</option>
-                                    </select>
+                                    <button type="button" onclick="kickUser({{ $addUser->id }})">KICK</button>
+                                    <button type="button" onclick="banUser({{ $addUser->id }})">BAN</button>
                                 </li>
                             @endforeach
                         @endif
@@ -69,7 +148,7 @@
                     </div>
                 </details>
                 <input type="submit" value="もう一度抽選する" class="button" formaction="/lottery/again/{{ $room->id }}" />
-                <input type="submit" value="Kick/Banして追加抽選する" class="button" formaction="/lottery/add/{{ $room->id }}" onclick="addLottery({{ $room->id }})"/>
+                <input type="submit" value="追加抽選する" class="button" formaction="/lottery/add/{{ $room->id }}" onclick="addLottery({{ $room->id }})"/>
             </form>
 
             <form action="/lottery/{{ $room->id }}" method="post" class="form-contaier">

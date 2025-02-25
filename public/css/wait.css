@@ -70,3 +70,25 @@
      margin-bottom: 15px;
      font-family: 'DotGothic16';
 }
+
+.button {
+    display: inline-block;
+    width: 100%;
+    padding: 12px 24px;
+    border: 2px solid red;
+    color: red;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 25px;
+    font-family: 'DotGothic16';
+    cursor: pointer;
+    background-color: white;
+    margin-top: 30px;
+}
+
+.button:hover {
+    background-color: red;
+    color: white;
+}
