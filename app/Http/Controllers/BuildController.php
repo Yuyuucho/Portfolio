@@ -9,6 +9,8 @@ use App\Http\Requests\EnterRequest;
 use App\Http\Requests\StartRequest;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Events\LotteryUpdated;
+use App\Events\UserVisitedPage;
 
 
 class BuildController extends Controller
@@ -41,6 +43,15 @@ class BuildController extends Controller
                     $existingRoom->users()->syncWithoutDetaching([
                         $user->id => ['is_owner' => true]
                     ]);
+                    //中間テーブルのリセット
+                    $existingRoom->users()
+                        ->where('is_owner', false)
+                        ->where('is_active', true)
+                        ->update([
+                            'is_active' => false,
+                            'win_count' => null,
+                            'enter_timing' => null,
+                        ]);
                     return redirect('/start/' .$existingRoom->id);
                 }
                 return redirect('/create')->withErrors([
@@ -60,7 +71,7 @@ class BuildController extends Controller
     {
         $accessNumber = $room->users()
             ->where('is_owner', false)
-            ->where('room_user.updated_at', '>=', Carbon::now()->subHour())
+            ->where('is_active', true)
             ->count();
         return view('start', compact('room', 'accessNumber'));
     }
@@ -83,24 +94,43 @@ class BuildController extends Controller
         $userId = Auth::id();
         $user = User::findOrFail($userId);
         $room = Room::where('roompass', $request->roompass)->first();
-        /*banの記述の追加 */
+        $userStatus = $room->users()
+            ->where('users.id', $userId)
+            ->value('status');
+        //banの記述の追加 
+        if ($userStatus === 'banned'){
+            return redirect('/')->withErrors([
+                'error' => 'BANされています'
+            ]);
+        }
         if ($room){
             $room->users()->syncWithoutDetaching([$user->id]);
-            $room->users()->where('user_id', $userId)->update(['room_user.enter_timing' => now()]);
+            $room->users()
+                ->where('user_id', $userId)
+                ->update([
+                    'room_user.enter_timing' => now(),
+                    'is_active' => true
+                ]);
+            $accessNumber = $room->users()
+                ->where('is_owner', false)
+                ->where('is_active', true)
+                ->count();
+
+            event(new UserVisitedPage($room->id, $accessNumber));
             return redirect('/wait/' .$room->id .'/' .$user->id);
         } else {
             return redirect('/enter')->withErrors([
                 'error' => '部屋に入れませんでした。'
             ]);
-        }
-        
+        }        
+
+        //is_activeをtrueにする
         //時間で部屋がアクティブか判断 バッチ
         //room解散をしたとき     
     }
 
     public function wait(Room $room, User $user)
     {
-        /*ここにもbanの記述が必要そう */
         $owner = $room->users()
             ->where('is_owner', true)
             ->first(['name']);
@@ -116,36 +146,51 @@ class BuildController extends Controller
     }
 
     public function lottery(Room $room)
-    {   
-        //is_winnerをリセット     
+{   
+    // statusのリセット
+    $room->users()->syncWithoutDetaching(
         $room->users()
-            ->where('is_winner', true)
-            ->update(['is_winner' => false]);
-        //ユーザーのランダム抽出
-        /*banの記述を追加 */
-        $randomUserIds = $room->users()
-            ->where('is_owner', false)
-            ->where('win_count', '<', $room->max_win)
-            ->inRandomOrder()
-            ->take($room->number_of_winners)
-            ->pluck('users.id');
-            //is_activeも判断
+            ->wherePivot('status', '!=', 'banned')
+            ->pluck('users.id')
+            ->mapWithKeys(fn($id) => [$id => ['status' => null]])
+    );
 
-        //is_winnerの更新
-        if ($randomUserIds->isNotEmpty()){
-            $room->users()
-                ->whereIn('users.id', $randomUserIds)
-                ->update(['is_winner' => true]);
-            foreach ($randomUserIds as $userId) {
+    // is_winnerをリセット
+    $room->users()->syncWithoutDetaching(
+        $room->users()
+            ->wherePivot('is_winner', true)
+            ->pluck('users.id')
+            ->mapWithKeys(fn($id) => [$id => ['is_winner' => false]]) // ✅ false に戻す
+    );
+
+    // ユーザーのランダム抽出
+    $randomUserIds = $room->users()
+        ->where('is_owner', false)
+        ->where('win_count', '<', $room->max_win)
+        ->where('is_active', true)
+        ->inRandomOrder()
+        ->take($room->number_of_winners)
+        ->pluck('users.id');
+
+    // is_winnerの更新
+    if ($randomUserIds->isNotEmpty()){
+        $room->users()
+            ->whereIn('users.id', $randomUserIds)
+            ->update(['is_winner' => true]); // ✅ true に戻す
+        
+        foreach ($randomUserIds as $userId) {
             $room->users()
                 ->updateExistingPivot($userId, ['win_count' => \DB::raw('win_count + 1')]);
-            }
-        }        
-        $randomUsers = $room->users()->whereIn('users.id', $randomUserIds)->get();
-        $addUsers = '';
-        return view('lottery', compact('randomUsers', 'addUsers', 'room'));
-    }
+        }
+    }        
 
+    $randomUsers = $room->users()->whereIn('users.id', $randomUserIds)->get();
+    $addUsers = '';
+
+    event(new LotteryUpdated($room, $randomUsers));
+
+    return view('lottery', compact('randomUsers', 'addUsers', 'room'));
+}
     public function nextLottery(StartRequest $request, Room $room)
     {
         $input = $request->input('room');
@@ -156,45 +201,51 @@ class BuildController extends Controller
 
     public function addLottery(StartRequest $request, Room $room)
     {
-        $room->users()
-        ->whereIn('status', ['kicked', 'added'])
-        ->update(['status' => null]);
-        $kickOrBanData = $request->input('kick_or_ban');
-        foreach ($kickOrBanData as $userId => $action) {
-            if ($action ==='kick' || $action === 'ban') {
-                $status = $action === 'kick' ? 'kicked' : 'banned';/* */
-                $room->users()
-                ->updateExistingPivot($userId, [
-                    'is_winner' => false,
-                    'status' => $status,
-                ]);
-                /*banの記述を追加。 */
-                $newWinnerId = $room->users()
-                ->where('is_owner', false)
-                ->where('is_winner', false)
-                ->where('win_count', '<', $room->max_win)
-                ->limit(1)
-                ->pluck('users.id')
-                ->first();
+        $kickedUsers = $room->users()
+            ->where('status', 'kicked')
+            ->count();
+        $bannedUsers = $room->users()
+            ->where('status', 'banned')
+            ->where('is_winner', true)
+            ->count();
+        $extraSlots = $bannedUsers + $kickedUsers;
 
-                if ($newWinnerId) {
-                    $room->users()
-                    ->updateExistingPivot($newWinnerId, [
-                        'is_winner' => true,
-                        'status' => 'added',
-                    ]);
-                }                
-            }
+        $newWinners = $room->users()
+            ->where('is_owner', false)
+            ->where('is_winner', false)
+            ->where('win_count', '<', $room->max_win)
+            ->limit($extraSlots)
+            ->get();
+
+        foreach ($newWinners as $winner) {
+            $room->users()->updateExistingPivot($winner->id, [
+                'status' => 'added',
+                'is_winner' => true
+            ]);
         }
+        
         $randomUsers = $room->users()
         ->where('is_winner', true)
         ->where('status', null)
         ->get();
         $addUsers = $room->users()
-        ->where('is_winner', true)
-        ->where('status', 'added')
-        ->get();
-
+            ->wherePivot('status', 'added') 
+            ->wherePivot('is_winner', true) 
+            ->get();
+        $room->users()->syncWithoutDetaching(
+            $room->users()
+                ->wherePivot('status', '!=', 'banned')
+                ->pluck('users.id')
+                ->mapWithKeys(fn($id) => [$id => ['status' => null]])
+        );
+        $room->users()->syncWithoutDetaching(
+            $room->users()
+                ->wherePivot('status', 'banned')
+                ->pluck('users.id')
+                ->mapWithKeys(fn($id) => [$id => ['is_winner' => 0]])
+        );
+        
+        event(new LotteryUpdated($room, $randomUsers));
         return view('lottery', compact('randomUsers', 'addUsers', 'room'));
     }
 
@@ -202,6 +253,12 @@ class BuildController extends Controller
     public function destroyRoom(Room $room)
     {
         $room->delete();
+        return redirect('/');
+    }
+
+    public function leaveRoom(Room $room, User $user)
+    {
+        $room->users()->where('users.id', $user->id)->update(['is_active' => 0, ]);
         return redirect('/');
     }
         

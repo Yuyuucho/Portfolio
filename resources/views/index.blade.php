@@ -11,6 +11,15 @@
 <body>
     <div class="body">
         <div class="container">
+        @if ($errors->any())
+            <div>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li class="error">{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
             <a href="/create" class="button">部屋を建てる</a>
             <a href="/enter" class="button">部屋に入る</a>
         </div>
