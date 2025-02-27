@@ -213,6 +213,7 @@ class BuildController extends Controller
         $newWinners = $room->users()
             ->where('is_owner', false)
             ->where('is_winner', false)
+            ->where('status', null)
             ->where('win_count', '<', $room->max_win)
             ->limit($extraSlots)
             ->get();
@@ -225,13 +226,13 @@ class BuildController extends Controller
         }
         
         $randomUsers = $room->users()
-        ->where('is_winner', true)
-        ->where('status', null)
+        ->wherePivot('is_winner', true)
+        ->wherePivot('status', '!=', 'added')
         ->get();
         $addUsers = $room->users()
-            ->wherePivot('status', 'added') 
-            ->wherePivot('is_winner', true) 
-            ->get();
+        ->wherePivot('status', 'added') 
+        ->wherePivot('is_winner', true)
+        ->get();
         $room->users()->syncWithoutDetaching(
             $room->users()
                 ->wherePivot('status', '!=', 'banned')
@@ -245,7 +246,7 @@ class BuildController extends Controller
                 ->mapWithKeys(fn($id) => [$id => ['is_winner' => 0]])
         );
         
-        event(new LotteryUpdated($room, $randomUsers));
+        event(new LotteryUpdated($room, $randomUsers, $addUsers));
         return view('lottery', compact('randomUsers', 'addUsers', 'room'));
     }
 

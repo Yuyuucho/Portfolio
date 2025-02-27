@@ -17,11 +17,14 @@ class LotteryUpdated implements ShouldBroadcast
 
     public $room;
     public $winners;
+    public $addUsers;
 
-    public function __construct(Room $room, $winners)
+
+    public function __construct(Room $room, $winners, $addUsers = [])
     {
         $this->room = $room;
         $this->winners = $winners;
+        $this->addUsers = $addUsers;
     }
 
     public function broadcastOn()
@@ -34,6 +37,7 @@ class LotteryUpdated implements ShouldBroadcast
         return [
             'channel' => 'lottery-room.' . $this->room->id,
             'winners' => $this->winners,
+            'addUsers' => $this->addUsers,
         ];
     }
 }

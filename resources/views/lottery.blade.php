@@ -26,7 +26,13 @@
 
             winnerList.innerHTML = '';
 
-            let winners = data.winners || data.winner || [];
+            let winners = data.winners || [];
+            let addUsers = data.addUsers || [];
+
+            if (winners.length === 0 && addUsers.length === 0) {
+                winnerList.innerHTML = `<li>現在、当選者はいません。</li>`;
+                return;
+            }
 
             winners.forEach(winner => {
                 let listItem = document.createElement('li');
@@ -38,6 +44,24 @@
                 `;
                 winnerList.appendChild(listItem);
             });
+
+            if (addUsers.length > 0) {
+                let newListItem = document.createElement('li');
+                newListItem.innerHTML = `<div class="new">New!!</div>`;
+                winnerList.appendChild(newListItem);
+
+                addUsers.forEach(addUser => {
+                    let listItem = document.createElement('li');
+                    listItem.setAttribute("data-user-id", addUser.id);
+                    listItem.innerHTML = `
+                        <div class="winner">${addUser.name}</div>
+                        <button type="button" onclick="kickUser(${addUser.id})">KICK</button>
+                        <button type="button" onclick="banUser(${addUser.id})">BAN</button>
+                    `;
+                    winnerList.appendChild(listItem);
+                });
+            }
+
         });
 
         // KICK/BANされたらリストから削除
@@ -104,22 +128,27 @@ function banUser(userId) {
                 @csrf
                 <div class="winner-list">
                     <ul>
-                        @foreach ($randomUsers as $randomUser)
-                            <li>
-                                <div class="winner">{{ $randomUser->name }}</div>
-                                <button type="button" onclick="kickUser({{ $randomUser->id }})">KICK</button>
-                                <button type="button" onclick="banUser({{ $randomUser->id }})">BAN</button>
-                            </li>
-                        @endforeach
-                        @if ($addUsers)
-                            <li><div class="new">New!!</div></li>
-                            @foreach ($addUsers as $addUser)
-                                <li>                                    
-                                    <div class="winner">{{ $addUser->name }}</div>
-                                    <button type="button" onclick="kickUser({{ $addUser->id }})">KICK</button>
-                                    <button type="button" onclick="banUser({{ $addUser->id }})">BAN</button>
+                        @if ($randomUsers->isEmpty() && $addUsers->isEmpty())
+                            <li>現在、当選者はいません。</li>
+                        @else
+                            @foreach ($randomUsers as $randomUser)
+                                <li>
+                                    <div class="winner">{{ $randomUser->name }}</div>
+                                    <button type="button" onclick="kickUser({{ $randomUser->id }})">KICK</button>
+                                    <button type="button" onclick="banUser({{ $randomUser->id }})">BAN</button>
                                 </li>
                             @endforeach
+
+                            @if ($addUsers->isNotEmpty())
+                                <li><div class="new">New!!</div></li>
+                                @foreach ($addUsers as $addUser)
+                                    <li>
+                                        <div class="winner">{{ $addUser->name }}</div>
+                                        <button type="button" onclick="kickUser({{ $addUser->id }})">KICK</button>
+                                        <button type="button" onclick="banUser({{ $addUser->id }})">BAN</button>
+                                    </li>
+                                @endforeach
+                            @endif
                         @endif
                     </ul>
                 </div>
