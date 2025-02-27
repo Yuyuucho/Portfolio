@@ -96,6 +96,7 @@
 ```sh
 git clone <リポジトリのURL>
 cd <プロジェクトフォルダ名>
+```
 
 ### 2. 環境設定ファイルの作成
 cp .env.example .env
