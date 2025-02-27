@@ -26,9 +26,16 @@ URL:https://re-5chool.com/
 | Database             | MySQL               |
 | Real-time processing | LaravelEcho, Pusher |
 
+## 主な機能
 
+・ユーザー登録 & 認証 (Laravel Breeze使用)
+・部屋の作成 & 参加
+・ランダム抽選
+・追加抽選 (kick されたユーザーや BAN されたユーザーの枠を補充)
+・ユーザーの Kick / BAN
+・WebSocket (Pusher) によるリアルタイム更新
 
-
+##
 
 #### アプリの命名理由
 アプリ名はこのアプリを作るきっかけになった、私がよく見る配信者が視聴者参加型配信の時に荒らしにブチギレていたため、"RAGE"という単語は入れたいと思っていました。
