@@ -1,66 +1,39 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## RE:SCHOOL
+####視聴者参加型配信をスムーズに進行するための抽選・パスワード配布アプリです。
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+#### 概要
 
-## About Laravel
+このアプリは、複数のユーザーが部屋に参加し、ランダムに当選者を決定してパスワードを配布する抽選システムです。部屋の作成、参加、抽選の実施、追加抽選、ユーザーのキック・BAN などの機能を提供します。
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+#### アプリのURL
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+URL:https://re-5chool.com/
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+#### アプリの目的
 
-## Learning Laravel
+このアプリは、視聴者参加型ゲーム配信のスムーズな進行を補助する目的で作成しました。
+・荒らしによって部屋の立て直しが発生し、進行が遅れる事。
+・部屋の立て直しによって一度入れたのにゲームをプレイできなかったという体験をする可能性があること。
+・通信環境の差により、早いもの勝ちのルールに不公平感があること。
+上記の問題を解決するために、ゲーム外のアプリで参加者を抽選し当選者にパスワードを配るアプリを作りました。
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 使用技術
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+| Category | Technology Stack |
+| -------------------- | ---------- |
+| Framework            | Laravel 10          |
+| Frontend             | Blade, JavaScript   |
+| Database             | MySQL               |
+| Real-time processing | LaravelEcho, Pusher |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-### Premium Partners
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### アプリの命名理由
+アプリ名はこのアプリを作るきっかけになった、私がよく見る配信者が視聴者参加型配信の時に荒らしにブチギレていたため、"RAGE"という単語は入れたいと思っていました。
+また、部屋のことをアプリ内で"room"としていたことから学校の教室を連想しました。
+そこで
+RAGE 〇〇 SCHOOL
+という名前にしようと考え、その結果、小学校を意味する＋入るを意味するENTRYと若干にている "ELEMENTARY" という単語を採用し、
+頭文字をとってRE:SCHOOLとしました。
