@@ -99,18 +99,25 @@ cd <プロジェクトフォルダ名>
 ```
 
 ### 2. 環境設定ファイルの作成
+```sh
 cp .env.example .env
+```
 
 ### 3. 必要パッケージのインストール
+```sh
 composer install
 npm install
+```
 
 ### 4. アプリケーションキーの生成
+```sh
 php artisan key:generate
+```
 
 ### 5. 環境設定（.env）の編集
 以下を適宜設定してください。
 
+```sh
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -123,15 +130,22 @@ PUSHER_APP_ID=your-pusher-app-id
 PUSHER_APP_KEY=your-pusher-app-key
 PUSHER_APP_SECRET=your-pusher-app-secret
 PUSHER_APP_CLUSTER=your-pusher-cluster
+```
 
 ### 6. マイグレーション＆シーディング
+```sh
 php artisan migrate --seed
+```
 
 ### 7. フロントエンドビルド
+```sh
 npm run build
+```
 
 ### 8. サーバー起動
+```sh
 php artisan serve
+```
 
 ### 9. Pusher設定（ローカル環境の場合）
 Pusherのダッシュボードで「App Keys」を確認し、.envに反映してください。
