@@ -28,14 +28,56 @@ URL:https://re-5chool.com/
 
 ## 主な機能
 
-・ユーザー登録 & 認証 (Laravel Breeze使用)
-・部屋の作成 & 参加
-・ランダム抽選
-・追加抽選 (kick されたユーザーや BAN されたユーザーの枠を補充)
-・ユーザーの Kick / BAN
+・ユーザー登録 & 認証 (Laravel Breeze使用)<br>
+・部屋の作成 & 参加<br>
+・ランダム抽選<br>
+・追加抽選 (kick されたユーザーや BAN されたユーザーの枠を補充)<br>
+・ユーザーの Kick / BAN<br>
 ・WebSocket (Pusher) によるリアルタイム更新
 
-##
+## テーブル設計
+
+### roomsテーブル
+
+| カラム名        | データ型           | NULL許可 | デフォルト        | 説明                         |
+|--------------|----------------|------|-------------|----------------|
+| id           | BIGINT         | NO   | AUTO_INCREMENT | 主キー         |
+| roomname     | VARCHAR(255)   | NO   |              | ルーム名        |
+| roompass     | VARCHAR(255)   | NO   |              | ルームパスワード |
+| gamepass     | VARCHAR(255)   | NO   |              | ゲーム用パスワード |
+| number_of_winners | INT      | NO   |              | 当選人数        |
+| max_win      | INT            | NO   | 1            | 最大当選回数    |
+| is_active    | BOOLEAN        | YES  | 0            | ルームの稼働状態 |
+| created_at   | TIMESTAMP      | YES  |              | 作成日時        |
+| updated_at   | TIMESTAMP      | YES  |              | 更新日時        |
+| deleted_at   | TIMESTAMP      | YES  |              | ソフトデリート用 |
+
+### usersテーブル（Laravel標準）
+
+| カラム名      | データ型           | NULL許可 | デフォルト | 説明               |
+|-----------|----------------|------|------|--------------|
+| id        | BIGINT         | NO   | AUTO_INCREMENT | 主キー |
+| name      | VARCHAR(255)   | NO   |      | ユーザー名 |
+| email     | VARCHAR(255)   | NO   |      | メールアドレス |
+| email_verified_at | TIMESTAMP | YES |  | メール確認日時 |
+| password  | VARCHAR(255)   | NO   |      | パスワード |
+| remember_token | VARCHAR(100) | YES |  | リメンバートークン |
+| created_at| TIMESTAMP      | YES  |      | 作成日時 |
+| updated_at| TIMESTAMP      | YES  |      | 更新日時 |
+
+### room_userテーブル（中間テーブル）
+
+| カラム名        | データ型           | NULL許可 | デフォルト | 説明                       |
+|--------------|----------------|------|------|----------------|
+| room_id      | BIGINT         | NO   |      | roomsテーブルの外部キー |
+| user_id      | BIGINT         | NO   |      | usersテーブルの外部キー |
+| is_owner     | BOOLEAN        | NO   | 0    | オーナーフラグ |
+| is_winner    | BOOLEAN        | NO   | 0    | 当選フラグ |
+| status       | VARCHAR(50)    | YES  |      | kicked/banned/addedなどの状態 |
+| enter_timing | TIMESTAMP      | YES  |      | ルーム参加時刻 |
+| win_count    | INT            | YES  | 0    | 当選回数 |
+| created_at   | TIMESTAMP      | YES  |      | 作成日時 |
+| updated_at   | TIMESTAMP      | YES  |      | 更新日時 |
 
 #### アプリの命名理由
 アプリ名はこのアプリを作るきっかけになった、私がよく見る配信者が視聴者参加型配信の時に荒らしにブチギレていたため、"RAGE"という単語は入れたいと思っていました。
