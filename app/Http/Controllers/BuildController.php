@@ -49,7 +49,7 @@ class BuildController extends Controller
                         ->where('is_active', true)
                         ->update([
                             'is_active' => false,
-                            'win_count' => null,
+                            'win_count' => 0,
                             'enter_timing' => null,
                         ]);
                     return redirect('/start/' .$existingRoom->id);
@@ -164,7 +164,7 @@ class BuildController extends Controller
     );
 
     // ユーザーのランダム抽出
-    $randomUserIds = $room->users()
+    $winnerIds = $room->users()
         ->where('is_owner', false)
         ->where('win_count', '<', $room->max_win)
         ->where('is_active', true)
@@ -173,23 +173,23 @@ class BuildController extends Controller
         ->pluck('users.id');
 
     // is_winnerの更新
-    if ($randomUserIds->isNotEmpty()){
+    if ($winnerIds->isNotEmpty()){
         $room->users()
-            ->whereIn('users.id', $randomUserIds)
+            ->whereIn('users.id', $winnerIds)
             ->update(['is_winner' => true]); // ✅ true に戻す
         
-        foreach ($randomUserIds as $userId) {
+        foreach ($winnerIds as $winnerId) {
             $room->users()
-                ->updateExistingPivot($userId, ['win_count' => \DB::raw('win_count + 1')]);
+                ->updateExistingPivot($winnerId, ['win_count' => \DB::raw('win_count + 1')]);
         }
     }        
 
-    $randomUsers = $room->users()->whereIn('users.id', $randomUserIds)->get();
-    $addUsers = '';
+    $winners = $room->users()->whereIn('users.id', $winnerIds)->get();
+    $addUsers = collect();
 
-    event(new LotteryUpdated($room, $randomUsers));
+    event(new LotteryUpdated($room, $winners, $addUsers));
 
-    return view('lottery', compact('randomUsers', 'addUsers', 'room'));
+    return view('lottery', compact('winners', 'addUsers', 'room'));
 }
     public function nextLottery(StartRequest $request, Room $room)
     {
@@ -201,6 +201,13 @@ class BuildController extends Controller
 
     public function addLottery(StartRequest $request, Room $room)
     {
+        $room->users()->syncWithoutDetaching(
+            $room->users()
+            ->wherePivot('status', 'added')
+            ->pluck('users.id')
+            ->mapWithKeys(fn($id) => [$id => ['status' => null]])
+        );
+            
         $kickedUsers = $room->users()
             ->where('status', 'kicked')
             ->count();
@@ -213,6 +220,7 @@ class BuildController extends Controller
         $newWinners = $room->users()
             ->where('is_owner', false)
             ->where('is_winner', false)
+            ->where('is_active', true)
             ->where('status', null)
             ->where('win_count', '<', $room->max_win)
             ->limit($extraSlots)
@@ -225,17 +233,21 @@ class BuildController extends Controller
             ]);
         }
         
-        $randomUsers = $room->users()
+        $winners = $room->users()
         ->wherePivot('is_winner', true)
-        ->wherePivot('status', '!=', 'added')
+        ->wherePivot('status', null)
         ->get();
+
         $addUsers = $room->users()
         ->wherePivot('status', 'added') 
         ->wherePivot('is_winner', true)
         ->get();
+
+        event(new LotteryUpdated($room, $winners, $addUsers));
+
         $room->users()->syncWithoutDetaching(
             $room->users()
-                ->wherePivot('status', '!=', 'banned')
+                ->wherePivot('status', 'kicked')
                 ->pluck('users.id')
                 ->mapWithKeys(fn($id) => [$id => ['status' => null]])
         );
@@ -246,8 +258,8 @@ class BuildController extends Controller
                 ->mapWithKeys(fn($id) => [$id => ['is_winner' => 0]])
         );
         
-        event(new LotteryUpdated($room, $randomUsers, $addUsers));
-        return view('lottery', compact('randomUsers', 'addUsers', 'room'));
+       
+        return view('lottery', compact('winners', 'addUsers', 'room'));
     }
 
     

@@ -16,7 +16,8 @@ class KickOrBanController extends Controller
             ->where('users.id', $user->id)
             ->update([
                 'status' => 'kicked',
-                'is_winner' => false
+                'is_winner' => false,
+                'is_active' => false
         ]);
 
         // イベントを発火
@@ -31,7 +32,8 @@ class KickOrBanController extends Controller
         $room->users()
             ->where('users.id', $user->id)
             ->update([
-                'status' => 'banned'
+                'status' => 'banned',
+                'is_active' => false
             ]);
 
         // イベントを発火

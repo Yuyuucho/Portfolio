@@ -40,6 +40,7 @@
             console.log("📢 LotteryUpdated イベント受信", data);
 
             let winners = data.winners || [];
+            let addUsers = data.addUsers || [];
             let statusDiv = document.querySelector('.status');
             let ownerInfoDiv = document.querySelector('.owner-info');
 
@@ -51,8 +52,9 @@
 
             // 🔍 **ユーザーが当選しているかチェック**
             let isWinner = winners.some(winner => winner.id == userId);
+            let addWinner = addUsers.some(addUser => addUser.id == userId);
 
-            if (isWinner) {
+            if (isWinner || addWinner) {
                 // 🏆 **当選したユーザーの表示**
                 statusDiv.innerHTML = `
                     <div class="win">おめでとうございます！！</div>
