@@ -20,49 +20,49 @@
         var channel = pusher.subscribe("lottery-room.{{ $room->id }}");
 
         // ユーザーリストの更新
-        channel.bind("App\\Events\\LotteryUpdated", function (data) {
-            let winnerList = document.querySelector('.winner-list ul');
-            if (!winnerList) return;
+        // channel.bind("App\\Events\\LotteryUpdated", function (data) {
+        //     let winnerList = document.querySelector('.winner-list ul');
+        //     if (!winnerList) return;
 
-            winnerList.innerHTML = '';
+        //     winnerList.innerHTML = '';
 
-            let winners = data.winners || [];
-            let addUsers = data.addUsers || [];
+        //     let winners = data.winners || [];
+        //     let addUsers = data.addUsers || [];
 
-            if (winners.length === 0 && addUsers.length === 0) {
-                winnerList.innerHTML = `<li>現在、当選者はいません。</li>`;
-                return;
-            }
+        //     if (winners.length === 0 && addUsers.length === 0) {
+        //         winnerList.innerHTML = `<li>現在、当選者はいません。</li>`;
+        //         return;
+        //     }
 
-            winners.forEach(winner => {
-                let listItem = document.createElement('li');
-                listItem.setAttribute("data-user-id", winner.id);
-                listItem.innerHTML = `
-                    <div class="winner">${winner.name}</div>
-                    <button type="button" onclick="kickUser(${winner.id})">KICK</button>
-                    <button type="button" onclick="banUser(${winner.id})">BAN</button>
-                `;
-                winnerList.appendChild(listItem);
-            });
+        //     winners.forEach(winner => {
+        //         let listItem = document.createElement('li');
+        //         listItem.setAttribute("data-user-id", winner.id);
+        //         listItem.innerHTML = `
+        //             <div class="winner">${winner.name}</div>
+        //             <button type="button" onclick="kickUser(${winner.id})">KICK</button>
+        //             <button type="button" onclick="banUser(${winner.id})">BAN</button>
+        //         `;
+        //         winnerList.appendChild(listItem);
+        //     });
 
-            if (addUsers.length > 0) {
-                let newListItem = document.createElement('li');
-                newListItem.innerHTML = `<div class="new">New!!</div>`;
-                winnerList.appendChild(newListItem);
+        //     if (addUsers.length > 0) {
+        //         let newListItem = document.createElement('li');
+        //         newListItem.innerHTML = `<div class="new">New!!</div>`;
+        //         winnerList.appendChild(newListItem);
 
-                addUsers.forEach(addUser => {
-                    let listItem = document.createElement('li');
-                    listItem.setAttribute("data-user-id", addUser.id);
-                    listItem.innerHTML = `
-                        <div class="winner">${addUser.name}</div>
-                        <button type="button" onclick="kickUser(${addUser.id})">KICK</button>
-                        <button type="button" onclick="banUser(${addUser.id})">BAN</button>
-                    `;
-                    winnerList.appendChild(listItem);
-                });
-            }
+        //         addUsers.forEach(addUser => {
+        //             let listItem = document.createElement('li');
+        //             listItem.setAttribute("data-user-id", addUser.id);
+        //             listItem.innerHTML = `
+        //                 <div class="winner">${addUser.name}</div>
+        //                 <button type="button" onclick="kickUser(${addUser.id})">KICK</button>
+        //                 <button type="button" onclick="banUser(${addUser.id})">BAN</button>
+        //             `;
+        //             winnerList.appendChild(listItem);
+        //         });
+        //     }
 
-        });
+        // });
 
         // KICK/BANされたらリストから削除
         channel.bind("App\\Events\\KickOrBanUpdated", function (data) {
@@ -118,6 +118,18 @@ function banUser(userId) {
         console.error("❌ BANエラー:", error);
     });
 }
+function addLottery(id) {
+    'use strict'
+    if (confirm('ゲーム内パスワードの変更はお済ですか？')) {
+        document.getElementById(`form_${id}`).submit();
+    }
+}
+function deleteRoom(id) {
+    'use strict'
+    if (confirm('本当に解散しますか？')) {
+        document.getElementById(`form_${id}`).submit();
+    }
+}
 </script>
     <div class="body">
         <div class="container">        
@@ -128,26 +140,30 @@ function banUser(userId) {
                 @csrf
                 <div class="winner-list">
                     <ul>
-                        @if ($randomUsers->isEmpty() && $addUsers->isEmpty())
+                        @if ($winners->isEmpty() && $addUsers->isEmpty())
                             <li>現在、当選者はいません。</li>
                         @else
-                            @foreach ($randomUsers as $randomUser)
+                            @foreach ($winners as $winner)
                                 <li>
-                                    <div class="winner">{{ $randomUser->name }}</div>
-                                    <button type="button" onclick="kickUser({{ $randomUser->id }})">KICK</button>
-                                    <button type="button" onclick="banUser({{ $randomUser->id }})">BAN</button>
+                                    <div class="winner">{{ $winner->name }}</div>
+                                    <button type="button" onclick="kickUser({{ $winner->id }})">KICK</button>
+                                    <button type="button" onclick="banUser({{ $winner->id }})">BAN</button>
                                 </li>
                             @endforeach
 
                             @if ($addUsers->isNotEmpty())
-                                <li><div class="new">New!!</div></li>
-                                @foreach ($addUsers as $addUser)
-                                    <li>
-                                        <div class="winner">{{ $addUser->name }}</div>
-                                        <button type="button" onclick="kickUser({{ $addUser->id }})">KICK</button>
-                                        <button type="button" onclick="banUser({{ $addUser->id }})">BAN</button>
-                                    </li>
-                                @endforeach
+                                <li>
+                <div class="new">New!!</div>
+                <ul>
+                    @foreach ($addUsers as $addUser)
+                        <li>
+                            <div class="winner">{{ $addUser->name }}</div>
+                            <button type="button" onclick="kickUser({{ $addUser->id }})">KICK</button>
+                            <button type="button" onclick="banUser({{ $addUser->id }})">BAN</button>
+                        </li>
+                    @endforeach
+                </ul>
+            </li>
                             @endif
                         @endif
                     </ul>
@@ -187,22 +203,6 @@ function banUser(userId) {
             </form>
         </div>
     </div>
-    <script>
-        function addLottery(id) {
-            'use strict'
-            if (confirm('ゲーム内パスワードの変更はお済ですか？')) {
-                document.getElementById(`form_${id}`).submit();
-            }
-        }
-    </script>
-    <script>
-        function deleteRoom(id) {
-            'use strict'
-            if (confirm('本当に解散しますか？')) {
-                document.getElementById(`form_${id}`).submit();
-            }
-        }
-    </script>
 </body>
 </x-app-layout>
 </html>
